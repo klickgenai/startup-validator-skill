@@ -1,0 +1,4 @@
+# Startup Validator Assets
+
+This directory can hold templates, sample data, or other files used by the skill.
+Currently no assets are required — the skill generates all outputs dynamically.
