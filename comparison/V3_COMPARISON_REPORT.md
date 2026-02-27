@@ -3,6 +3,7 @@
 ## Three-Way Comparison — No Skill vs v2 Skill vs v3 Skill
 
 **Date:** 2026-02-27
+**Bias-corrected:** 2026-02-27 (no-skill re-audited for fairness; 5 dimensions adjusted upward)
 **Methodology:** Three AI agents were given the identical prompt and built the same application. Each operated under different conditions: (A) no skill, (B) v2 skill, (C) v3 skill. All code was generated in single sessions with no human edits.
 
 **Prompt (identical for all three):**
@@ -15,7 +16,7 @@
 | Metric | No Skill (A) | v2 Skill (B) | v3 Skill (C) | A→C Delta |
 |--------|-------------|-------------|-------------|-----------|
 | **Language** | JavaScript | JavaScript | TypeScript (strict) | JS → TS |
-| **Source files** | 1 | 12 | 36 | +35 |
+| **Source files** | 5 | 12 | 36 | +31 |
 | **Source lines** | 195 | 1,150 | 1,643 | +1,448 (8.4x) |
 | **Test files** | 0 | 2 | 14 | +14 |
 | **Test lines** | 0 | 727 | 1,396 | +1,396 |
@@ -39,7 +40,7 @@
 | **Optimistic locking** | No | Yes | Yes | ✓ |
 | **Graceful shutdown** | No | Yes | Yes | ✓ |
 | **Foundation config files** | 1 | 4 | 13 | +12 |
-| **Enterprise Score** | **47/100** | **69/100** | **89/100** | **+42** |
+| **Enterprise Score** | **52.5/100** (↑ from 47) | **69/100** | **89/100** | **+36.5** |
 
 ---
 
@@ -65,9 +66,11 @@ Each dimension is scored on a 0–5 raw scale, then weighted by its production i
 
 | Version | Raw | Weighted |
 |---------|-----|----------|
-| No Skill | 2.0/5 | 6.0/15 |
+| No Skill | ~~2.0~~ **2.5/5** | ~~6.0~~ **7.5/15** |
 | v2 Skill | 3.5/5 | 10.5/15 |
 | **v3 Skill** | **4.5/5** | **13.5/15** |
+
+**Bias correction (No Skill 2.0→2.5):** Originally scored as "single file, no structure." Re-audit found 5 files across 4 directories with router pattern, middleware separation, lazy DB init, and graceful shutdown. This is modular, not monolithic.
 
 **What v3 added:** Repository interfaces before implementations, constructor-based DI, typed event bus for cross-cutting concerns, 7-layer separation. The contract-first approach (types written before any implementation) is a structural change that prevents cross-file type drift.
 
@@ -149,9 +152,11 @@ Each dimension is scored on a 0–5 raw scale, then weighted by its production i
 
 | Version | Raw | Weighted |
 |---------|-----|----------|
-| No Skill | 2.0/5 | 6.0/15 |
+| No Skill | ~~2.0~~ **2.5/5** | ~~6.0~~ **7.5/15** |
 | v2 Skill | 3.5/5 | 10.5/15 |
 | **v3 Skill** | **4.5/5** | **13.5/15** |
+
+**Bias correction (No Skill 2.0→2.5):** Re-audit found solid security fundamentals: 100% parameterized queries, JWT from env var, bcrypt, ownership→404, generic auth errors (prevents user enumeration), login response manually excludes password hash. These are not accidental — they're competent security defaults.
 
 **What v3 added:** Guardrails #16 (rate limiting) and #1 (security headers) are now mandatory with explicit implementations. PII redaction is structural (pino config), not ad-hoc. Docker runs as non-root. TypeScript's type system prevents accidental password hash leakage at compile time.
 
@@ -202,11 +207,13 @@ Each dimension is scored on a 0–5 raw scale, then weighted by its production i
 
 | Version | Raw | Weighted |
 |---------|-----|----------|
-| No Skill | 2.0/5 | 4.0/10 |
+| No Skill | ~~2.0~~ **2.5/5** | ~~4.0~~ **5.0/10** |
 | v2 Skill | 3.5/5 | 7.0/10 |
 | **v3 Skill** | **4.5/5** | **9.0/10** |
 
-**What v3 added:** Busy timeout for concurrent access, explicit title length check, unique index on email (not just unique constraint).
+**Bias correction (No Skill 2.0→2.5):** Re-audit found CHECK constraints on status AND priority, FK with ON DELETE CASCADE, UNIQUE on email, NOT NULL on all required columns, WAL mode, `foreign_keys = ON`. This is a decent schema — not just bare tables.
+
+**What v3 added:** Busy timeout for concurrent access, explicit title length check, unique index on email (not just unique constraint), 5 indexes (including composite), optimistic locking with version column.
 
 **What's still missing for 5/5:** Versioned migration system (uses `CREATE IF NOT EXISTS`), soft deletes.
 
@@ -226,9 +233,11 @@ Each dimension is scored on a 0–5 raw scale, then weighted by its production i
 
 | Version | Raw | Weighted |
 |---------|-----|----------|
-| No Skill | 2.0/5 | 2.0/5 |
+| No Skill | ~~2.0~~ **2.5/5** | ~~2.0~~ **2.5/5** |
 | v2 Skill | 3.5/5 | 3.5/5 |
 | **v3 Skill** | **4.5/5** | **4.5/5** |
+
+**Bias correction (No Skill 2.0→2.5):** Re-audit found global error handler, 404 handler, specific `TokenExpiredError` handling, generic "Invalid email or password" (security best practice), and per-route validation errors. Basic but covers the important cases.
 
 ---
 
@@ -247,11 +256,13 @@ Each dimension is scored on a 0–5 raw scale, then weighted by its production i
 
 | Version | Raw | Weighted |
 |---------|-----|----------|
-| No Skill | 0.5/5 | 0.5/5 |
+| No Skill | ~~0.5~~ **1.0/5** | ~~0.5~~ **1.0/5** |
 | v2 Skill | 2.0/5 | 2.0/5 |
 | **v3 Skill** | **4.0/5** | **4.0/5** |
 
-**This is the second-biggest relative improvement: 0.5 → 4.0 (+3.5 weighted).** The v3 skill upgraded guardrail #9 from "basic health check" to full structured observability: pino, correlation IDs, PII redaction, component child loggers, and an audit trail for every mutation.
+**Bias correction (No Skill 0.5→1.0):** Has health check endpoint, console.error logging, startup message. Basic but present.
+
+**This is the second-biggest relative improvement: 1.0 → 4.0 (+3.0 weighted).** The v3 skill upgraded guardrail #9 from "basic health check" to full structured observability: pino, correlation IDs, PII redaction, component child loggers, and an audit trail for every mutation.
 
 **What's still missing for 5/5:** Metrics endpoint (Prometheus), distributed tracing spans.
 
@@ -311,28 +322,30 @@ Each dimension is scored on a 0–5 raw scale, then weighted by its production i
 
 ---
 
-## Final Scorecard
+## Final Scorecard (Bias-Corrected)
 
-| Dimension | Weight | No Skill (A) | v2 Skill (B) | v3 Skill (C) | B→C Gain |
-|-----------|--------|-------------|-------------|-------------|----------|
-| Architecture | 15% | 6.0 | 10.5 | **13.5** | +3.0 |
-| Type Safety | 10% | 2.0 | 2.0 | **9.0** | **+7.0** |
-| Testing | 15% | 0.0 | 10.5 | **13.5** | +3.0 |
-| Security | 15% | 6.0 | 10.5 | **13.5** | +3.0 |
-| API Design | 10% | 5.0 | 7.0 | **9.0** | +2.0 |
-| Data Integrity | 10% | 4.0 | 7.0 | **9.0** | +2.0 |
-| Error Handling | 5% | 2.0 | 3.5 | **4.5** | +1.0 |
-| Observability | 5% | 0.5 | 2.0 | **4.0** | +2.0 |
-| DevOps Readiness | 10% | 2.0 | 5.0 | **9.0** | **+4.0** |
-| Maintainability | 5% | 2.0 | 3.5 | **4.0** | +0.5 |
-| **TOTAL** | **100%** | **47/100** | **69/100** | **89/100** | **+20** |
+| Dimension | Weight | No Skill (A) | v2 Skill (B) | v3 Skill (C) | A→C Gap |
+|-----------|--------|-------------|-------------|-------------|---------|
+| Architecture | 15% | **7.5** (↑ from 6.0) | 10.5 | **13.5** | 6.0 |
+| Type Safety | 10% | 2.0 | 2.0 | **9.0** | **7.0** |
+| Testing | 15% | 0.0 | 10.5 | **13.5** | **13.5** |
+| Security | 15% | **7.5** (↑ from 6.0) | 10.5 | **13.5** | 6.0 |
+| API Design | 10% | 5.0 | 7.0 | **9.0** | 4.0 |
+| Data Integrity | 10% | **5.0** (↑ from 4.0) | 7.0 | **9.0** | 4.0 |
+| Error Handling | 5% | **2.5** (↑ from 2.0) | 3.5 | **4.5** | 2.0 |
+| Observability | 5% | **1.0** (↑ from 0.5) | 2.0 | **4.0** | 3.0 |
+| DevOps Readiness | 10% | 2.0 | 5.0 | **9.0** | **7.0** |
+| Maintainability | 5% | 2.0 | 3.5 | **4.0** | 2.0 |
+| **TOTAL** | **100%** | **52.5** (↑ from 47) | **69/100** | **89/100** | **+36.5** |
+
+**Bias correction applied:** No-skill re-audited on 2026-02-27. Five dimensions adjusted upward (+5.5 total) after finding modular architecture, solid security fundamentals, and decent schema design were under-credited. V3 and v2 scores confirmed unchanged.
 
 ### Score Classification
 
 | Range | Classification | Version |
 |-------|---------------|---------|
 | 0–40 | Prototype / Hackathon | — |
-| 41–60 | Prototype Quality | No Skill (47) |
+| 41–60 | Prototype Quality | No Skill (52.5) |
 | 61–75 | Startup Acceptable | v2 Skill (69) |
 | 76–89 | Production Grade | **v3 Skill (89)** |
 | 90–100 | Enterprise Grade | — |
@@ -402,18 +415,18 @@ These are legitimate gaps, not oversights. Forcing them would push the score to 
 | Types/Contracts | 0 | 0 | **5** |
 | Errors | 0 | 0 | **2** |
 | Events | 0 | 0 | **2** |
-| Config/Database | 0 | 3 | **3** |
+| Config/Database | 1 (database.js) | 3 | **3** |
 | Repository layer | 0 | 0 | **5** |
 | Service layer | 0 | 0 | **3** |
 | Controllers | 0 | 0 | **4** |
-| Middleware | 0 | 4 | **6** |
-| Routes | 0 | 2 | 0 (inline in app.ts) |
+| Middleware | 1 (auth.js) | 4 | **6** |
+| Routes | 2 (users.js, tasks.js) | 2 | 0 (inline in app.ts) |
 | Utilities | 0 | 1 | **3** |
-| App/Entry | 1 | 2 | **2** |
+| App/Entry | 1 (index.js) | 2 | **2** |
 | Test helpers | 0 | 0 | **4** |
 | Test factories | 0 | 0 | **2** |
 | Integration tests | 0 | 2 | **9** |
-| **Total files** | **2** | **18** | **63** |
+| **Total files** | **6** | **18** | **63** |
 
 ### Test Coverage Comparison
 
@@ -464,7 +477,7 @@ These are legitimate gaps, not oversights. Forcing them would push the score to 
 
 | Metric | No Skill → v2 | v2 → v3 | No Skill → v3 |
 |--------|--------------|---------|---------------|
-| Score delta | +22 points | +20 points | +42 points |
+| Score delta (bias-corrected) | +16.5 points | +20 points | +36.5 points |
 | Classification jump | Prototype → Startup | Startup → Production | Prototype → Production |
 | Core improvement | "Don't forget security" | "Structural foundation" | Both combined |
 
@@ -479,3 +492,54 @@ The 3 v3 innovations — BOOTSTRAP phase, TypeScript hard gate, contract-first d
 ---
 
 *Report generated from three AI-generated codebases built from identical prompts. No human code was written or modified. All versions were generated in single sessions using Claude Opus 4.6. Scoring uses the same 10-dimension framework with identical weights across all three versions.*
+
+---
+
+## Appendix: Bias Verification Audit
+
+### What Was Checked
+
+On 2026-02-27, the no-skill output was re-read line-by-line and re-scored with the question: "Are we being unfairly harsh on the baseline to inflate the skill's advantage?"
+
+### What We Found
+
+**5 dimensions were under-scored for no-skill:**
+
+| Dimension | Original | Corrected | Evidence We Under-Credited |
+|-----------|----------|-----------|---------------------------|
+| Architecture | 2.0/5 | 2.5/5 | 5 files across 4 directories, Express Router pattern, middleware separation, lazy DB init, graceful shutdown — not a monolith |
+| Security | 2.0/5 | 2.5/5 | 100% parameterized queries, JWT from env var, bcrypt, ownership→404, generic auth errors, manual exclusion of password hash from responses |
+| Data Integrity | 2.0/5 | 2.5/5 | CHECK constraints on enums, FK with ON DELETE CASCADE, UNIQUE on email, NOT NULL, WAL mode, `foreign_keys = ON` |
+| Error Handling | 2.0/5 | 2.5/5 | Global error handler, 404 handler, specific `TokenExpiredError` handling, generic "Invalid email or password" |
+| Observability | 0.5/5 | 1.0/5 | Health check endpoint, console.error logging, startup message — basic but present |
+
+**5 dimensions were confirmed fair:**
+
+| Dimension | Score | Why It's Correct |
+|-----------|-------|-----------------|
+| Type Safety | 1.0/5 | JavaScript with no TypeScript. Runtime validation exists but no compile-time safety. 1.0 is fair. |
+| Testing | 0.0/5 | Zero tests, zero test framework, zero test scripts. Genuinely absent. |
+| API Design | 2.5/5 | Good filtering/sorting, but inconsistent response shapes and no pagination. 2.5 is fair. |
+| DevOps | 1.0/5 | Only PORT env var + graceful shutdown. No Docker, CI, .gitignore, .env.example. 1.0 is fair. |
+| Maintainability | 2.0/5 | Modular but no style enforcement, barrel exports, or interfaces. 2.0 is fair. |
+
+**V3 was checked for over-scoring — no inflation found:**
+
+| Check | Result |
+|-------|--------|
+| Custom rate limiter vs express-rate-limit | Fair — custom is more testable (has `reset()`) |
+| Event bus: over-engineering? | 79 lines for audit trail — low cost, real value |
+| 84 tests: meaningful or bloated? | Each tests a real scenario — no trivial assertions |
+| 98% coverage: legitimate? | Verified by running `jest --coverage` |
+| Repository pattern: overkill? | 37 lines of interfaces. Enables DI + testability |
+
+### Net Impact
+
+| Metric | Before Correction | After Correction |
+|--------|-------------------|------------------|
+| No-Skill Score | 47/100 | 52.5/100 |
+| V3 Score | 89/100 | 89/100 (unchanged) |
+| Gap | 42 points | 36.5 points |
+| Conclusion | Same: Prototype → Production (2-tier jump) | Same: Prototype → Production (2-tier jump) |
+
+The correction narrows the gap by 5.5 points but does not change the classification or conclusion. The v3 skill produces measurably more production-ready code across every dimension.
