@@ -1,0 +1,17 @@
+node_modules/
+dist/
+coverage/
+.env
+.env.local
+.env.*.local
+*.db
+*.db-journal
+data/
+.git/
+.github/
+.vscode/
+.idea/
+*.md
+*.log
+logs/
+tests/
