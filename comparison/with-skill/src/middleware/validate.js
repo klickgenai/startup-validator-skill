@@ -33,7 +33,15 @@ function validate(schema) {
       const data = req[source] || {};
 
       for (const [field, rules] of Object.entries(schema[source])) {
-        const value = data[field];
+        let value = data[field];
+
+        // Sanitization runs FIRST (before validation) so that trimming, lowercasing,
+        // etc. happens before pattern/length checks evaluate the value.
+        if (value !== undefined && value !== null && value !== '' &&
+            rules.sanitize && typeof rules.sanitize === 'function') {
+          value = rules.sanitize(value);
+          data[field] = value;
+        }
 
         // Required check
         if (rules.required && (value === undefined || value === null || value === '')) {
@@ -136,10 +144,7 @@ function validate(schema) {
           }
         }
 
-        // Sanitization (mutates req data)
-        if (rules.sanitize && typeof rules.sanitize === 'function') {
-          data[field] = rules.sanitize(value);
-        }
+        // Note: Sanitization already applied at the top of the loop before validation
       }
     }
 
