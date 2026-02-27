@@ -85,6 +85,8 @@ Issues: [count]
 
 Before touching any code:
 
+### If the project has existing code:
+
 1. **Read every file you'll modify** + files that import or depend on them. No exceptions.
 2. **Read the database schema** if the change involves data (migrations, Prisma, SQL, models).
 3. **Read existing tests** for files you're touching.
@@ -94,6 +96,26 @@ Before touching any code:
    - What depends on them?
    - Does this touch auth, payments, schema, APIs, shared state, or routes?
 6. **Check existing patterns.** How is similar code done in this project? Follow it. Don't add new libraries for things existing dependencies already handle.
+7. **Read the project's CLAUDE.md** for established conventions and project context.
+
+### If this is a greenfield project (starting from scratch):
+
+1. **Read the CLAUDE.md** at the project root — it has the project vision, stack, and conventions.
+2. **Confirm before building.** If CLAUDE.md Project Info is empty, ask the user:
+   - What are we building? (1-sentence description)
+   - What stack? (framework, database, styling, hosting)
+   - What's the first feature?
+3. **Bootstrap the foundation.** The first implementation sets the pattern for everything after it:
+   - Proper project structure for the chosen framework
+   - `.env.example` and `.gitignore` from the first commit
+   - Database with proper constraints from the first table (PKs, FKs, NOT NULL, UNIQUE, indexes, timestamps)
+   - Consistent API response shapes from the first endpoint
+   - Error handling patterns from the first external call
+   - Auth structure from the first protected route
+   - Test setup and happy-path tests from the first feature
+   - Input validation at boundaries from the first form or endpoint
+4. **All 10 non-negotiable guardrails apply from line 1.** Don't treat them as "add later" — build them into the foundation.
+5. **Update CLAUDE.md** — fill in Project Info and add established conventions as you build.
 
 ---
 
@@ -192,6 +214,35 @@ Catch these automatically. For the full catalog with symptoms, causes, and fixes
 8. **"The database handles that"** — validate at both application AND database level
 9. **"We can scale later"** — paginate, index, pool, no N+1 — free now, expensive later
 10. **"The frontend handles auth"** — every API endpoint verifies auth independently
+
+---
+
+## CLAUDE.md Integration
+
+This skill works best when paired with a CLAUDE.md at the project root. The CLAUDE.md anchors the guardian's behavior and stores project-specific context.
+
+**A template CLAUDE.md is included with this skill.** Copy it to your project root:
+
+```bash
+cp .claude/skills/vibe-coder-guardian/CLAUDE.md ./CLAUDE.md
+```
+
+### What the CLAUDE.md does:
+
+| Section | Purpose |
+|---------|---------|
+| **Guardian** | Enforces the 5-phase pipeline on every interaction — makes the skill mandatory, not optional |
+| **Starting From Scratch** | Bootstrap rules for greenfield projects — foundation set up correctly from line 1 |
+| **Project Info** | App description, stack, status — you fill this in and update as the project evolves |
+| **Conventions** | Patterns established as the project grows — API shapes, file naming, state management, etc. |
+
+### Why this matters:
+
+Without CLAUDE.md, this skill is **loaded but passive** — it relies on Claude noticing it exists. With CLAUDE.md, the skill is **enforced** — Claude is explicitly told to follow it on every interaction. The CLAUDE.md is the anchor that keeps the guardian active and the project conventions consistent as the codebase grows.
+
+### Keep CLAUDE.md alive:
+
+As you build, update the Conventions section when new patterns are established. This becomes the single source of truth for "how things are done in this project." The guardian reads it during UNDERSTAND and follows whatever patterns are documented there.
 
 ---
 

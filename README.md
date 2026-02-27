@@ -178,6 +178,35 @@ No trigger needed. Runs automatically on every code interaction through 5 phases
 2. Start a Claude Code session
 3. Describe your situation — the skill triggers automatically
 
+### Starting a New Project From Scratch (Vibe Coder Guardian + CLAUDE.md)
+
+If you're building from zero lines of code, the Vibe Coder Guardian includes a **CLAUDE.md template** that anchors the skill into your project and ensures it stays active on every interaction.
+
+```bash
+# 1. Create your project directory
+mkdir my-app && cd my-app
+git init
+
+# 2. Set up the skill
+mkdir -p .claude/skills
+cp -r /path/to/vibe-coder-guardian .claude/skills/
+
+# 3. Copy the CLAUDE.md to your project root (this is the key step)
+cp .claude/skills/vibe-coder-guardian/CLAUDE.md ./CLAUDE.md
+
+# 4. Start building
+claude  # or open Claude Desktop in Cowork mode
+```
+
+**Why the CLAUDE.md matters:** Without it, the skill is loaded but passive — Claude may not consistently apply it. With it, the skill is **enforced** — Claude is explicitly told to run the 5-phase pipeline on every interaction. The CLAUDE.md also stores your project conventions as they're established, so the guardian knows "how things are done" in your specific codebase.
+
+**What happens next:**
+1. Claude reads your CLAUDE.md and sees the guardian is mandatory
+2. It asks you what you're building, what stack, and what to build first
+3. It bootstraps the project with proper foundations (env setup, database constraints, auth patterns, etc.)
+4. Every feature after that runs through UNDERSTAND → PLAN → BUILD → VERIFY → EXPLAIN
+5. As patterns are established, they get documented in CLAUDE.md's Conventions section
+
 ### Trigger Phrases
 
 **Startup Validator:**
@@ -195,6 +224,7 @@ No trigger needed. Runs automatically on every code interaction through 5 phases
 **Vibe Coder Guardian:**
 - No trigger needed — always active
 - Just describe what you want to build
+- For best results, copy the included CLAUDE.md to your project root
 
 ---
 
