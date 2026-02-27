@@ -1,6 +1,6 @@
-# Vibe Coder Guardian — Quick Reference Checklists
+# Vibe Coder Guardian — Enterprise Checklists
 
-Read this file during PLAN (feature clash) and VERIFY (regression, security, pre-deploy). These are the checklists the agent runs on every interaction.
+Read this file during PLAN (feature clash, architecture), VERIFY (regression, security, performance, architecture), and before deployment (pre-deploy). These are the checklists the agent runs on every interaction.
 
 ---
 
@@ -31,32 +31,66 @@ Run this BEFORE adding any new feature.
 
 ---
 
+## Architecture Review Checklist
+
+Run this during ARCHITECT phase and during VERIFY.
+
+### Dependency Direction
+- [ ] Domain layer has ZERO imports from application or infrastructure
+- [ ] Application layer imports from domain only (no infrastructure imports)
+- [ ] Infrastructure depends on domain and application (implements interfaces defined there)
+- [ ] No circular dependencies between modules
+- [ ] Controllers contain ZERO business logic (only: parse request → call service → send response)
+
+### Separation of Concerns
+- [ ] Each service/use case has a single, clear responsibility
+- [ ] Business rules live in domain entities, not in services or controllers
+- [ ] Data access is behind repository interfaces
+- [ ] Validation happens at system boundaries (middleware), not scattered through business logic
+- [ ] Cross-cutting concerns (logging, notifications, analytics) use events, not direct calls
+
+### Interface Design
+- [ ] Services depend on interfaces, not concrete implementations
+- [ ] Repository interfaces are defined in domain layer, implementations in infrastructure
+- [ ] External service interfaces are defined in application layer
+- [ ] Every dependency is injectable (constructor injection)
+
+### Module Boundaries
+- [ ] New feature doesn't require modifying more than 3 existing files (if it does, review boundaries)
+- [ ] Adding this feature doesn't create coupling between previously independent modules
+- [ ] If bounded contexts exist, communication between them is event-based only
+
+---
+
 ## New Endpoint Checklist
 
-- [ ] Input validation on all parameters
+- [ ] Input validation on all parameters (using validation library, not hand-written)
 - [ ] Authentication middleware applied
 - [ ] Authorization check (user owns resource)
 - [ ] Error handling with appropriate status codes
 - [ ] Rate limiting (if public or auth-related)
-- [ ] Response shape consistent with other endpoints
+- [ ] Response shape consistent with other endpoints (uses response helper)
 - [ ] Paginated if returning a list
 - [ ] SQL uses parameterized queries
 - [ ] Logged appropriately (no sensitive data in logs)
-- [ ] Tested: happy path + auth failure + invalid input + not found
+- [ ] Return UUIDs, not auto-increment IDs
+- [ ] Tested: happy path + auth failure + invalid input + not found + ownership violation
 
 ---
 
 ## New Database Table Checklist
 
-- [ ] Primary key defined
-- [ ] Foreign keys with ON DELETE behavior
+- [ ] Primary key defined (UUID if exposed in URLs)
+- [ ] Foreign keys with ON DELETE behavior (CASCADE, SET NULL, or RESTRICT)
 - [ ] NOT NULL on required columns
 - [ ] UNIQUE on naturally unique columns (email, slug)
+- [ ] CHECK constraints on bounded values (status, priority, amounts >= 0)
 - [ ] Indexes on columns used in WHERE / JOIN / ORDER BY
-- [ ] created_at and updated_at timestamps
+- [ ] `created_at` and `updated_at` timestamps
+- [ ] `version` column if entity supports concurrent editing (optimistic locking)
 - [ ] Migration is reversible (up AND down)
 - [ ] Default values for existing rows if adding column to existing table
-- [ ] No sensitive data stored in plain text
+- [ ] No sensitive data stored in plain text (passwords hashed, PII encrypted if required)
 
 ---
 
@@ -75,19 +109,24 @@ Run this BEFORE adding any new feature.
 
 ---
 
-## New Feature Checklist
+## New Feature Checklist (Full Pipeline)
 
-- [ ] Read all related existing code first
+- [ ] Read all related existing code first (UNDERSTAND)
 - [ ] Mapped the blast radius (what could break?)
+- [ ] Architecture review passed (dependency direction, separation, interfaces)
 - [ ] Feature clash detection completed
 - [ ] Follows existing codebase patterns
-- [ ] Input validation at the boundary
-- [ ] Error handling on all external calls
-- [ ] Edge cases handled (empty, boundary, concurrent, error)
+- [ ] Interface/contract defined before implementation
+- [ ] Input validation at the boundary (Zod/Joi schema)
+- [ ] Typed error handling on all external calls
+- [ ] Consistent API response shapes (uses response helper)
 - [ ] Existing tests still pass
-- [ ] New tests written (happy path + one failure case minimum)
+- [ ] New tests written (unit + integration, minimum happy path + 2 failure cases)
+- [ ] Coverage meets threshold (80% minimum)
 - [ ] Security quick-scan completed
-- [ ] Explained to user what was built and what to test
+- [ ] Performance quick-check completed
+- [ ] TypeScript compiles with zero errors (`tsc --noEmit`)
+- [ ] Explained to user what was built, architecture decisions made, and what to test
 
 ---
 
@@ -105,6 +144,7 @@ Run AFTER every change.
 - [ ] Form validation still works on modified forms
 - [ ] Mobile layout not broken
 - [ ] No new console errors or warnings
+- [ ] All existing tests still pass
 
 ---
 
@@ -112,31 +152,88 @@ Run AFTER every change.
 
 Run AFTER every change.
 
-- [ ] No hardcoded secrets in code
+- [ ] No hardcoded secrets in code (grep for `password`, `secret`, `api_key`, `token`)
 - [ ] No sensitive data in console.log / print statements
-- [ ] Every new endpoint checks authentication
+- [ ] Every new endpoint checks authentication (middleware)
 - [ ] Every new endpoint checks authorization (user owns resource)
-- [ ] All user input validated and sanitized
-- [ ] Database queries use parameterized statements
+- [ ] All user input validated and sanitized (Zod/Joi at boundary)
+- [ ] Database queries use parameterized statements (no string interpolation)
 - [ ] File uploads check type, size, and content
-- [ ] No open redirects
-- [ ] Error messages don't expose internals
-- [ ] CORS not accidentally opened to "*"
+- [ ] No open redirects (whitelist redirect targets)
+- [ ] Error messages don't expose internals (stack traces, SQL errors, file paths)
+- [ ] CORS not accidentally opened to "*" in production
+- [ ] Security headers present (X-Content-Type-Options, X-Frame-Options, etc.)
+- [ ] Rate limiting active on auth endpoints
+- [ ] JWT secret is env-only, validated at startup (min 32 chars)
+
+---
+
+## Performance Quick-Check
+
+Run AFTER every change that touches data or APIs.
+
+- [ ] Every list query is paginated (LIMIT + OFFSET or cursor)
+- [ ] Database indexes on columns in WHERE / JOIN / ORDER BY
+- [ ] No N+1 query patterns (loading related entities in a loop)
+- [ ] No unbounded `SELECT *` queries
+- [ ] Large files are streamed, not loaded into memory
+- [ ] Connection pooling configured for database
+- [ ] No O(n²) loops over data sets
+- [ ] Background jobs for long-running operations (> 2 seconds)
+- [ ] Hot paths are cacheable (read 10x more than written)
+- [ ] Response payloads are reasonably sized (no sending 1MB JSON for a list)
+
+---
+
+## Code Review Checklist
+
+Run this as a self-review before presenting code to the user.
+
+### Correctness
+- [ ] Code does what the requirements describe
+- [ ] Edge cases handled (empty, null, boundary values, concurrent)
+- [ ] Error paths handled (not just happy path)
+- [ ] Types are correct and strict (no `any`, no type assertions without validation)
+
+### Readability
+- [ ] Functions are < 40 lines (if longer, consider extracting)
+- [ ] Variable names describe their purpose (not `x`, `temp`, `data`)
+- [ ] No nested ternaries or deeply nested conditionals (> 3 levels)
+- [ ] Comments explain WHY, not WHAT (code should explain what)
+- [ ] Consistent naming conventions (camelCase for functions, PascalCase for classes/types)
+
+### Architecture
+- [ ] New code follows existing project patterns
+- [ ] No new dependencies added without justification
+- [ ] No architecture violations (see Architecture Review Checklist)
+- [ ] No technical debt introduced without flagging it
+
+### Testing
+- [ ] Tests cover the new code
+- [ ] Tests are readable (good names, AAA pattern)
+- [ ] Tests don't test implementation details
+- [ ] No flaky tests (timing-dependent, order-dependent)
 
 ---
 
 ## Pre-Deploy Checklist
 
-- [ ] All tests pass
+- [ ] All tests pass (unit + integration + e2e)
+- [ ] TypeScript compiles with zero errors
+- [ ] ESLint passes with zero errors
 - [ ] No hardcoded secrets in code
-- [ ] Environment variables documented in .env.example
+- [ ] Environment variables documented in `.env.example`
 - [ ] Database migrations tested (up AND down)
-- [ ] No debug statements left in code
-- [ ] Error tracking configured
-- [ ] CORS and security headers set correctly
+- [ ] No debug statements left in code (`console.log`, `debugger`, `TODO`)
+- [ ] Error tracking configured (Sentry, LogRocket, etc.)
+- [ ] CORS and security headers set correctly for production
 - [ ] Rate limiting active on auth endpoints
-- [ ] Health check endpoint exists
-- [ ] Rollback plan documented
+- [ ] Health check endpoint exists and returns dependency status
+- [ ] Structured logging configured (JSON format, log levels, no PII)
+- [ ] Graceful shutdown handles SIGTERM/SIGINT
+- [ ] Docker image builds successfully
+- [ ] CI/CD pipeline passes all stages
+- [ ] Rollback plan documented (previous version available, migrations reversible)
 
 ---
 
@@ -148,5 +245,37 @@ Run AFTER every change.
 - [ ] No unbounded SELECT * queries
 - [ ] Large files are streamed, not loaded into memory
 - [ ] Connection pooling configured for database
-- [ ] No O(n^2) loops over data sets
-- [ ] Background jobs for long-running operations (>5 seconds)
+- [ ] No O(n²) loops over data sets
+- [ ] Background jobs for long-running operations (> 5 seconds)
+- [ ] Cache strategy for read-heavy data
+- [ ] Queue strategy for async operations (email, notifications, exports)
+
+---
+
+## Incident Response Checklist
+
+When something breaks in production:
+
+### Immediate (0-5 minutes)
+- [ ] Acknowledge the incident
+- [ ] Check health endpoint — is the service up?
+- [ ] Check logs for errors (filter by error level, last 15 minutes)
+- [ ] Check recent deploys — was anything deployed in the last hour?
+
+### Diagnose (5-15 minutes)
+- [ ] Identify the failing component (API, database, external service, infrastructure)
+- [ ] Check error rates — is this affecting all users or a subset?
+- [ ] Check database connections — pool exhaustion? Slow queries?
+- [ ] Check external services — are dependencies healthy?
+
+### Mitigate (15-30 minutes)
+- [ ] If recent deploy caused it: ROLLBACK to previous version
+- [ ] If external service is down: activate degraded mode / fallback
+- [ ] If database issue: check connections, restart if needed, investigate slow queries
+- [ ] Communicate status to affected users if applicable
+
+### Post-Incident
+- [ ] Write brief incident report (what happened, when, impact, resolution)
+- [ ] Identify root cause
+- [ ] Create task to prevent recurrence
+- [ ] Update monitoring / alerting to catch this earlier next time
