@@ -533,21 +533,44 @@ Every deploy needs a rollback plan:
 
 ## Security Hardening
 
-### HTTP Security Headers
+### HTTP Security Headers (Mandatory)
+
+Every project MUST have these headers. This is a non-functional requirement that LLMs consistently skip.
 
 ```typescript
-// Already in the 15 guardrails, but here's the full set:
-app.use((_req, res, next) => {
+// middleware/security-headers.middleware.ts
+export function securityHeaders(req: Request, res: Response, next: NextFunction) {
+  // Remove server fingerprint
   res.removeHeader('X-Powered-By');
+
+  // Prevent MIME sniffing
   res.setHeader('X-Content-Type-Options', 'nosniff');
+
+  // Prevent clickjacking
   res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('X-XSS-Protection', '0');  // Modern browsers: CSP replaces this
-  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+
+  // Disable legacy XSS filter (CSP replaces this)
+  res.setHeader('X-XSS-Protection', '0');
+
+  // Force HTTPS (only in production)
+  if (process.env.NODE_ENV === 'production') {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  }
+
+  // Control referrer information
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+
+  // Restrict browser features
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+
   next();
-});
+}
+
+// Apply BEFORE routes:
+// app.use(securityHeaders);
 ```
+
+**All 7 headers are mandatory.** Missing any one = security issue in VERIFY phase.
 
 ### Rate Limiting
 
@@ -589,22 +612,60 @@ Run `npm audit` in CI. Fail the build on high/critical vulnerabilities.
 
 ## Project Configuration Files
 
-### Essential Config Files (Create from Day 1)
+### Essential Config Files (Create from Day 1 — Phase 0: BOOTSTRAP)
 
 ```
 project/
+├── .editorconfig         # Editor consistency (tabs, newlines, encoding)
 ├── .env.example          # Environment variable template
+├── .eslintrc.json        # ESLint configuration
 ├── .gitignore            # Git ignore rules
 ├── .dockerignore         # Docker build ignore rules
-├── .eslintrc.json        # ESLint configuration
+├── .nvmrc                # Node.js version pinning
 ├── .prettierrc           # Prettier configuration
 ├── tsconfig.json         # TypeScript configuration
-├── jest.config.ts        # Jest test configuration
+├── jest.config.ts        # Jest test configuration (with coverage thresholds)
 ├── Dockerfile            # Container build
 ├── docker-compose.yml    # Local development stack
 └── .github/
     └── workflows/
         └── ci.yml        # CI/CD pipeline
+```
+
+### .editorconfig
+
+```ini
+# .editorconfig
+root = true
+
+[*]
+indent_style = space
+indent_size = 2
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[*.md]
+trim_trailing_whitespace = false
+```
+
+### .nvmrc
+
+```
+20
+```
+
+### .prettierrc
+
+```json
+{
+  "singleQuote": true,
+  "trailingComma": "all",
+  "printWidth": 100,
+  "tabWidth": 2,
+  "semi": true
+}
 ```
 
 ### TypeScript Configuration

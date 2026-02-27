@@ -590,6 +590,154 @@ See `references/devops-operations.md` for detailed templates.
 
 ---
 
+## 14. Rate Limiting
+
+**Auth endpoints: 10 req/15min. General API: 100 req/15min.**
+
+Rate limiting prevents brute force attacks, credential stuffing, and API abuse. It's a non-functional requirement that LLMs consistently skip.
+
+### Implementation
+
+```typescript
+// middleware/rate-limit.middleware.ts
+import rateLimit from 'express-rate-limit';
+
+// General API rate limit
+export const apiRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,  // 15 minutes
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    error: { code: 'RATE_LIMITED', message: 'Too many requests. Please try again later.' },
+  },
+});
+
+// Strict limit on auth endpoints (prevent brute force)
+export const authRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: {
+    success: false,
+    error: { code: 'RATE_LIMITED', message: 'Too many authentication attempts. Please try again later.' },
+  },
+});
+
+// Apply in routes:
+// app.use('/api/', apiRateLimit);
+// app.use('/api/auth/', authRateLimit);
+```
+
+### Where to Apply
+
+| Route Pattern | Limit | Why |
+|--------------|-------|-----|
+| `/api/auth/login` | 10/15min | Prevent brute force |
+| `/api/auth/register` | 5/15min | Prevent account spam |
+| `/api/auth/reset-password` | 3/15min | Prevent email spam |
+| `/api/*` (general) | 100/15min | Prevent abuse |
+| `/api/upload` | 10/15min | Prevent storage abuse |
+
+### Response Shape
+
+Rate limit responses MUST use the same error shape as all other errors:
+```json
+{
+  "success": false,
+  "error": {
+    "code": "RATE_LIMITED",
+    "message": "Too many requests. Please try again later."
+  }
+}
+```
+
+---
+
+## 15. Audit Trail for Mutations
+
+**Every CREATE, UPDATE, DELETE logs: who, what, when, from where.**
+
+This is the guardrail that makes your application compliant with enterprise requirements. Without it, you have no accountability — you can't answer "who changed this data and when?"
+
+### Pattern: Event-Based Audit
+
+```typescript
+// domain/events/audit.event.ts
+export class AuditEvent {
+  constructor(
+    public readonly action: 'CREATE' | 'UPDATE' | 'DELETE',
+    public readonly resource: string,
+    public readonly resourceId: string,
+    public readonly userId: string,
+    public readonly correlationId: string,
+    public readonly timestamp: Date,
+    public readonly changes?: Record<string, { from: unknown; to: unknown }>,
+  ) {}
+}
+
+// Subscribe in infrastructure:
+eventBus.subscribe(AuditEvent, async (event) => {
+  logger.info({
+    audit: true,
+    action: event.action,
+    resource: event.resource,
+    resourceId: event.resourceId,
+    userId: event.userId,
+    correlationId: event.correlationId,
+    changes: event.changes,
+  }, `${event.action} ${event.resource}`);
+});
+```
+
+### What to Audit
+
+| Action | What to Log |
+|--------|------------|
+| User registration | userId, email (hashed), timestamp |
+| Login success/failure | userId (if known), IP, success/failure |
+| Resource CREATE | userId, resource type, resource ID |
+| Resource UPDATE | userId, resource type, resource ID, changed fields (old → new) |
+| Resource DELETE | userId, resource type, resource ID |
+| Permission changes | who changed, whose permissions, old → new |
+
+### What NOT to Audit
+
+- Read operations (too noisy — use access logs instead)
+- Health check requests
+- Static asset requests
+- Internal system operations (cron, migrations)
+
+### Implementation in Use Cases
+
+```typescript
+class UpdateTaskUseCase {
+  constructor(
+    private taskRepo: ITaskRepository,
+    private eventBus: IEventBus,
+  ) {}
+
+  async execute(userId: string, taskId: string, input: UpdateTaskInput, correlationId: string) {
+    const existing = await this.taskRepo.findById(taskId);
+    if (!existing) throw new NotFoundError('Task', taskId);
+
+    const updated = existing.update(input);
+    await this.taskRepo.save(updated);
+
+    // Audit: what changed, by whom
+    await this.eventBus.publish(new AuditEvent(
+      'UPDATE', 'task', taskId, userId, correlationId,
+      new Date(),
+      this.diffChanges(existing, updated),
+    ));
+
+    return updated;
+  }
+}
+```
+
+---
+
 ## Frontend Resilience
 
 ### Layout & Responsiveness

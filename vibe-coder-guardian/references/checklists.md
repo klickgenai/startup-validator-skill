@@ -64,17 +64,19 @@ Run this during ARCHITECT phase and during VERIFY.
 
 ## New Endpoint Checklist
 
-- [ ] Input validation on all parameters (using validation library, not hand-written)
+- [ ] Input validation with Zod schema (not hand-written validators)
 - [ ] Authentication middleware applied
-- [ ] Authorization check (user owns resource)
-- [ ] Error handling with appropriate status codes
-- [ ] Rate limiting (if public or auth-related)
+- [ ] Authorization check (user owns resource, return 404 not 403)
+- [ ] Error handling with typed error classes and appropriate status codes
+- [ ] Rate limiting applied (auth: 10/15min, general: 100/15min)
 - [ ] Response shape consistent with other endpoints (uses response helper)
-- [ ] Paginated if returning a list
+- [ ] Paginated if returning a list (with full metadata: page, limit, total, totalPages, hasNextPage, hasPrevPage)
 - [ ] SQL uses parameterized queries
-- [ ] Logged appropriately (no sensitive data in logs)
+- [ ] Logged with structured logger (pino), correlation ID attached, no sensitive data
+- [ ] Audit event emitted for mutations (CREATE, UPDATE, DELETE)
 - [ ] Return UUIDs, not auto-increment IDs
-- [ ] Tested: happy path + auth failure + invalid input + not found + ownership violation
+- [ ] TypeScript types defined for request and response shapes
+- [ ] Tested: happy path + auth failure + invalid input + not found + ownership violation + rate limit
 
 ---
 
@@ -153,18 +155,39 @@ Run AFTER every change.
 Run AFTER every change.
 
 - [ ] No hardcoded secrets in code (grep for `password`, `secret`, `api_key`, `token`)
-- [ ] No sensitive data in console.log / print statements
+- [ ] No sensitive data in logs (pino redaction configured for password, token, authorization, cookie)
+- [ ] No `console.log` — use structured logger (pino)
 - [ ] Every new endpoint checks authentication (middleware)
-- [ ] Every new endpoint checks authorization (user owns resource)
-- [ ] All user input validated and sanitized (Zod/Joi at boundary)
+- [ ] Every new endpoint checks authorization (user owns resource, returns 404 not 403)
+- [ ] All user input validated with Zod schemas (not hand-written validators)
 - [ ] Database queries use parameterized statements (no string interpolation)
 - [ ] File uploads check type, size, and content
 - [ ] No open redirects (whitelist redirect targets)
 - [ ] Error messages don't expose internals (stack traces, SQL errors, file paths)
 - [ ] CORS not accidentally opened to "*" in production
-- [ ] Security headers present (X-Content-Type-Options, X-Frame-Options, etc.)
-- [ ] Rate limiting active on auth endpoints
-- [ ] JWT secret is env-only, validated at startup (min 32 chars)
+- [ ] All 7 security headers present (X-Content-Type-Options, X-Frame-Options, HSTS, X-XSS-Protection, Referrer-Policy, Permissions-Policy, no X-Powered-By)
+- [ ] Rate limiting active on auth endpoints (10 req/15min) and general API (100 req/15min)
+- [ ] JWT secret is env-only, validated at startup with Zod (min 32 chars)
+- [ ] Audit trail logs all mutations (CREATE, UPDATE, DELETE) with userId and correlationId
+
+---
+
+## Observability Quick-Check
+
+Run AFTER every change. This compensates for the happy-path bias — observability is invisible when code works.
+
+- [ ] **No console.log** — all logging through structured logger (pino)
+- [ ] Logger configured with JSON output in production, pretty-print in dev
+- [ ] Sensitive fields redacted (pino `redact` option: password, token, authorization, cookie, *.password, *.token)
+- [ ] Correlation ID middleware present — every request gets a unique ID
+- [ ] Request logging includes: method, URL, status code, duration (ms), correlationId
+- [ ] Error handler logs full error + stack server-side, returns safe message to client
+- [ ] Health check endpoint exists at `/api/health` with dependency status:
+  - Database: connection status + latency
+  - External services: status (if applicable)
+  - Uptime: `process.uptime()`
+- [ ] Graceful shutdown handles SIGTERM/SIGINT, closes DB connections, flushes logs
+- [ ] Log levels configured per environment (debug in dev, info in production)
 
 ---
 
@@ -219,20 +242,22 @@ Run this as a self-review before presenting code to the user.
 ## Pre-Deploy Checklist
 
 - [ ] All tests pass (unit + integration + e2e)
-- [ ] TypeScript compiles with zero errors
-- [ ] ESLint passes with zero errors
+- [ ] Test coverage meets thresholds (80% global, 90% domain)
+- [ ] TypeScript compiles with zero errors (`tsc --noEmit`)
+- [ ] ESLint passes with zero errors (no `any` in codebase)
 - [ ] No hardcoded secrets in code
-- [ ] Environment variables documented in `.env.example`
+- [ ] Environment variables documented in `.env.example` and validated with Zod at startup
 - [ ] Database migrations tested (up AND down)
 - [ ] No debug statements left in code (`console.log`, `debugger`, `TODO`)
-- [ ] Error tracking configured (Sentry, LogRocket, etc.)
-- [ ] CORS and security headers set correctly for production
-- [ ] Rate limiting active on auth endpoints
-- [ ] Health check endpoint exists and returns dependency status
-- [ ] Structured logging configured (JSON format, log levels, no PII)
-- [ ] Graceful shutdown handles SIGTERM/SIGINT
-- [ ] Docker image builds successfully
-- [ ] CI/CD pipeline passes all stages
+- [ ] All 7 security headers present
+- [ ] Rate limiting active on auth endpoints (10/15min) and general API (100/15min)
+- [ ] Health check endpoint exists and returns dependency status (DB latency, uptime)
+- [ ] Structured logging configured (pino, JSON format, log levels, redaction for PII/secrets)
+- [ ] Correlation ID middleware present on all requests
+- [ ] Audit trail logging all mutations
+- [ ] Graceful shutdown handles SIGTERM/SIGINT, closes DB, flushes logs
+- [ ] Docker image builds successfully (multi-stage, non-root user, HEALTHCHECK)
+- [ ] CI/CD pipeline passes all stages (lint → typecheck → test → security → build)
 - [ ] Rollback plan documented (previous version available, migrations reversible)
 
 ---

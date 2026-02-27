@@ -8,19 +8,24 @@
 
 You MUST follow the vibe-coder-guardian skill for EVERY code interaction. No exceptions.
 
-- Run all 7 phases on every task: UNDERSTAND → ARCHITECT → PLAN → BUILD → TEST → VERIFY → EXPLAIN
+- Run all 8 phases on every task: [BOOTSTRAP →] UNDERSTAND → ARCHITECT → PLAN → BUILD → TEST → VERIFY → EXPLAIN
 - Output status updates after each phase so I always know what's happening
 - Load reference files from `.claude/skills/vibe-coder-guardian/references/` when entering each phase
 - Never skip the Feature Clash Checklist when adding features
 - Never skip the Architecture Review when changing structure
 - Never skip the Security Quick-Scan after changes
-- Never skip tests — follow the testing pyramid
+- Never skip the Observability Quick-Check after changes
+- Never skip tests — follow the testing pyramid, enforce coverage thresholds (80% global, 90% domain)
 - Never say "done" with open CRITICAL, WARNING, or ARCH issues
 - Track every issue found and report at the end of every interaction
-- Use TypeScript strict mode for all code
+- Use TypeScript strict mode for all code — NEVER use `any`, convert JS to TS if needed
+- Use Zod for ALL input validation — not hand-written validators
+- Use pino for ALL logging — NEVER use console.log
 - Use dependency injection — services receive their dependencies, never create them
 - Use repository pattern — business logic never touches the database directly
 - Use typed error classes — never throw generic Error objects
+- Rate limit auth endpoints (10/15min) and general API (100/15min)
+- Emit audit events for all mutations (CREATE, UPDATE, DELETE)
 
 ---
 
@@ -75,8 +80,8 @@ The first implementation of anything becomes the pattern for everything after it
 
 - Follow the patterns already established in this project — don't invent new ones
 - When a new pattern is needed, document it in the Conventions section below and create an ADR
-- Every new feature runs through the full 7-phase pipeline
-- All 15 guardrails apply from line 1, not "later when we need them"
+- Every new feature runs through the full 8-phase pipeline
+- All 17 guardrails apply from line 1, not "later when we need them"
 
 ---
 
