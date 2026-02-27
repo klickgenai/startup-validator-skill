@@ -1,8 +1,30 @@
 # Claude Skills Collection
 
-**Two powerful Claude skills for founders, professionals, and anyone making high-stakes decisions.**
+**Three powerful Claude skills for founders, builders, and professionals making high-stakes decisions.**
 
 Built for [Claude Desktop (Cowork Mode)](https://claude.ai) and [Claude Code](https://docs.anthropic.com/en/docs/claude-code).
+
+---
+
+## Architecture: Lean Core + On-Demand References
+
+Each skill uses a **thin core, fat references** architecture to keep context consumption low while maintaining depth:
+
+```
+skill-folder/
+├── SKILL.md              # Lean core (~200-280 lines) — loaded into context
+└── references/           # Detailed guides — loaded on demand when needed
+    ├── checklists.md
+    ├── build-guardrails.md
+    └── ...
+```
+
+**Why this matters:** The SKILL.md gets loaded into Claude's context window on every interaction. A 700-line file consumes ~15K tokens permanently. By keeping the core lean and moving detailed patterns into reference files that are read only when needed, we reduce context consumption by 50-60% while maintaining all the depth.
+
+| Layer | What it contains | When it's loaded |
+|-------|-----------------|-----------------|
+| **SKILL.md** | Behavior, phases, decision gates, non-negotiable rules | Always (injected into context) |
+| **references/** | Detailed checklists, code patterns, templates, examples | On demand (agent reads when entering that phase) |
 
 ---
 
@@ -12,6 +34,7 @@ Built for [Claude Desktop (Cowork Mode)](https://claude.ai) and [Claude Code](ht
 |-------|-------------|-------------- |
 | **[Startup Idea Validator](./startup-validator/)** | Takes any startup idea from rough concept to research-backed GO / PIVOT / KILL decision | Founders, indie hackers, product teams |
 | **[Negotiation War Room](./negotiation-war-room/)** | Turns any negotiation into a strategic operation with complete intelligence package | Everyone — salary, contracts, deals, real estate, freelance rates |
+| **[Vibe Coder Guardian](./vibe-coder-guardian/)** | Senior staff engineer that proactively catches bugs, security holes, and feature clashes | Builders, vibe coders, AI-first developers |
 
 ---
 
@@ -22,18 +45,20 @@ Built for [Claude Desktop (Cowork Mode)](https://claude.ai) and [Claude Code](ht
 | Mode | What Happens |
 |------|-------------|
 | **Interview Mode** | Builds the problem/solution brief through guided questions (4 rounds) |
-| **Research Mode** | Runs multi-agent online analysis (Reddit, forums, YouTube, app stores, competitors) + generates human validation toolkit |
+| **Research Mode** | Runs 6 parallel agents (Reddit, forums, YouTube, competitors) + generates human validation toolkit |
 | **Scoring Mode** | Scores real interview data against rubrics, produces final GO/PIVOT/KILL verdict |
 
-### Research Mode runs 6 parallel AI agents:
-1. **Reddit & Forum Mining** — Searches 8+ queries across Reddit, industry forums, YouTube, app stores
-2. **Competitor Mapping** — Maps every competitor with pricing, features, funding, threat level
-3. **Pricing Strategy** — Exact tier names/prices, revenue projections, LTV/CAC estimates
-4. **Differentiation Strategy** — Wedge feature, positioning statement, moat strategy
-5. **Trust & Adoption** — 90-day trust-building timeline, messaging guide, community strategy
-6. **Go-to-Market** — Channel rankings with CAC, specific communities/podcasts/conferences
+### File Structure
+```
+startup-validator/
+├── SKILL.md                          # Core: modes, interview flow, scoring criteria
+└── references/
+    ├── agent-prompts.md              # Exact prompts for 6 research agents
+    ├── interview-toolkit.md          # Deliverable specs (tracker, script, kit)
+    └── scoring-rubric.md             # Scoring formulas, report structure
+```
 
-### Deliverables:
+### Deliverables
 - **Validation Tracker** (.xlsx) — Dashboard, online signals, competitor intel, strategy solutions
 - **Customer Interview Script** (.docx) — 6-section printable guide with inline scoring rubrics
 - **Interview Kit** (.xlsx) — 22-column interview log with live GO/PIVOT/KILL dashboard
@@ -43,7 +68,7 @@ Built for [Claude Desktop (Cowork Mode)](https://claude.ai) and [Claude Code](ht
 
 **KILL** (any one triggers): Core pain < 3/15, Would try < 4/15, Would pay < 1/15
 
-**PIVOT** (investigate): Pain avg 2.5–3.4, WTP 2.0–2.9, model mismatch, data misalignment
+**PIVOT** (investigate): Pain avg 2.5-3.4, WTP 2.0-2.9, model mismatch, data misalignment
 
 **GO** (all must pass): Pain avg >= 3.5, Demo avg >= 3.5, WTP avg >= 3.0, Use+Pay >= 8+5/15, Commit 4+ >= 3
 
@@ -51,54 +76,79 @@ Built for [Claude Desktop (Cowork Mode)](https://claude.ai) and [Claude Code](ht
 
 ## Skill 2: Negotiation War Room
 
-**Turn any negotiation into a strategic operation. Get a $5K consulting-level negotiation intelligence package in minutes.**
-
-Most people leave $10K–$1M+ on the table in major negotiations because they wing it. This skill gives you the same strategic edge that negotiation consultants charge $500+/hr for.
+**Turn any negotiation into a strategic operation. Get a $5K consulting-level intelligence package in minutes.**
 
 | Mode | What Happens |
 |------|-------------|
-| **Intel Briefing** | 4-round contextual interview → 6 parallel research agents → Intelligence Dossier |
-| **Strategy War Room** | Complete negotiation package: ZOPA map, concession ladder, objection playbook, battle card |
+| **Intel Briefing** | 4-round interview, 6 parallel research agents, Intelligence Dossier |
+| **Strategy War Room** | Complete package: ZOPA map, concession ladder, objection playbook, battle card |
 | **Debrief** | Post-negotiation scoring, pattern analysis, lessons learned |
 
-### Works for ANY negotiation type:
+### File Structure
+```
+negotiation-war-room/
+├── SKILL.md                          # Core: modes, interview flow, principles
+└── references/
+    ├── agent-prompts.md              # Exact prompts for 6 research agents
+    ├── deliverable-templates.md      # Formats for all 6 strategy deliverables
+    └── debrief-framework.md          # Scoring and analysis structure
+```
 
-| Type | Examples |
-|------|----------|
-| **Salary & Compensation** | Job offers, raises, promotions, equity packages |
-| **Freelance & Consulting** | Rate setting, scope negotiation, retainer terms |
-| **Business Deals** | Partnerships, M&A, licensing, vendor contracts |
-| **Real Estate** | Buying, selling, leasing — commercial and residential |
-| **Funding & Investment** | Term sheets, valuations, SAFE notes, deal terms |
-| **Service Agreements** | SaaS contracts, outsourcing, agency engagements |
-| **Dispute Resolution** | Settlements, refunds, contract disputes |
-| **Everyday High-Stakes** | Car purchases, medical bills, rent, insurance claims |
+### Works for ANY negotiation type
+Salary, freelance rates, business deals, real estate, funding, service agreements, disputes, car purchases, medical bills, rent, insurance claims.
 
-### Intel Briefing runs 6 parallel research agents:
-1. **Market Benchmark Agent** — Industry rates, comparable deals, market data with specific numbers
-2. **Counterparty Intelligence Agent** — Organization profile, financial signals, pain points, pressure points
-3. **BATNA & Alternatives Agent** — Ranked alternatives for both sides, power balance scoring
-4. **Negotiation Framework Agent** — Optimal strategy selection (Harvard Principled, Chris Voss, Integrative, etc.)
-5. **Communication & Persuasion Agent** — Opening scripts, anchor delivery, power questions, email templates
-6. **Risk & Contingency Agent** — Top 10 risks, dirty tactics defense, emotional tripwires, post-deal protection
-
-### Deliverables:
+### Deliverables
 - **Intelligence Dossier** — Synthesized research from all 6 agents
-- **ZOPA & Anchor Map** — Your range, their range, overlap zone, specific anchor point with justification
-- **Concession Ladder** — What to give up, in what order, with what conditions, what to get in return
+- **ZOPA & Anchor Map** — Ranges, overlap zone, justified anchor point
+- **Concession Ladder** — Round-by-round positions with conditions
 - **Objection Handling Playbook** — Top 10 objections with exact response scripts
-- **Scenario Decision Trees** — 5 branching if-then paths with specific actions
-- **Written Negotiation Templates** — 5 ready-to-send email/message templates
-- **One-Page Battle Card** — THE cheat sheet you take into the room (target, anchor, walk-away, scripts, leverage points, objection responses, power questions, red lines)
-- **Post-Negotiation Scorecard** — Value captured, dimension scores, verdict, lessons learned
+- **Scenario Decision Trees** — 5 branching if-then paths
+- **Written Negotiation Templates** — 5 ready-to-send emails
+- **One-Page Battle Card** — THE cheat sheet for the room
 
-### Key Principles:
-- **Specificity over generality** — Exact scripts, specific numbers, concrete actions
-- **Data anchors everything** — Every target justified by market research
-- **Scripts over suggestions** — Ready-to-use words, not vague advice
-- **Psychological awareness** — Cognitive bias exploitation and defense
-- **Ethical boundaries** — Strategic framing yes, deception never
-- **Honest assessment** — If your position is weak, you'll know before you walk in
+---
+
+## Skill 3: Vibe Coder Guardian
+
+**A senior staff engineer that proactively catches bugs, security holes, feature clashes, and scaling issues — without being asked.**
+
+### File Structure
+```
+vibe-coder-guardian/
+├── SKILL.md                          # Core: 5 phases, decision gates, 10 non-negotiable rules
+└── references/
+    ├── checklists.md                 # All quick-reference checklists
+    ├── build-guardrails.md           # Detailed code patterns and examples
+    └── pitfalls.md                   # 10 common pitfalls with fixes
+```
+
+### Always-On Behavior
+No trigger needed. Runs automatically on every code interaction through 5 phases:
+
+| Phase | What Happens |
+|-------|-------------|
+| **UNDERSTAND** | Read code, map blast radius, check patterns |
+| **PLAN** | Feature clash detection, architecture check, scale sanity |
+| **BUILD** | Write code with 10 non-negotiable guardrails |
+| **VERIFY** | Run tests, regression check, security scan |
+| **EXPLAIN** | Summary, protections, manual test suggestions, risk flags |
+
+### Transparency Features
+- **Status updates** after every phase (user always knows what's happening)
+- **Decision gates** between phases (stop and ask when uncertain)
+- **Issue tracking** with severity levels (never claim "done" with open issues)
+
+### 10 Non-Negotiable Rules
+1. Parameterized queries only
+2. Never hardcode secrets
+3. Auth on every endpoint
+4. Validate all external input
+5. Error handling on every external call
+6. Consistent API responses
+7. Database integrity enforced
+8. No secrets in logs or errors
+9. Handle race conditions
+10. Third-party timeouts and retries
 
 ---
 
@@ -109,8 +159,9 @@ Most people leave $10K–$1M+ on the table in major negotiations because they wi
 1. Copy the skill folder to your project's `.claude/skills/` directory:
    ```bash
    mkdir -p .claude/skills
-   cp -r startup-validator .claude/skills/    # For Startup Validator
-   cp -r negotiation-war-room .claude/skills/ # For Negotiation War Room
+   cp -r startup-validator .claude/skills/
+   cp -r negotiation-war-room .claude/skills/
+   cp -r vibe-coder-guardian .claude/skills/
    ```
 2. Open Claude Desktop in Cowork mode
 3. Describe your situation — the skill triggers automatically
@@ -120,8 +171,9 @@ Most people leave $10K–$1M+ on the table in major negotiations because they wi
 1. Copy the skill folder to your project's `.claude/skills/` directory:
    ```bash
    mkdir -p .claude/skills
-   cp -r startup-validator .claude/skills/    # For Startup Validator
-   cp -r negotiation-war-room .claude/skills/ # For Negotiation War Room
+   cp -r startup-validator .claude/skills/
+   cp -r negotiation-war-room .claude/skills/
+   cp -r vibe-coder-guardian .claude/skills/
    ```
 2. Start a Claude Code session
 3. Describe your situation — the skill triggers automatically
@@ -138,8 +190,11 @@ Most people leave $10K–$1M+ on the table in major negotiations because they wi
 - "I need to negotiate..."
 - "Help me prepare for a negotiation"
 - "I got a job offer and want to negotiate"
-- "How do I negotiate my rate/salary/rent/deal?"
 - "The negotiation is done, let me debrief"
+
+**Vibe Coder Guardian:**
+- No trigger needed — always active
+- Just describe what you want to build
 
 ---
 
@@ -147,12 +202,16 @@ Most people leave $10K–$1M+ on the table in major negotiations because they wi
 
 ### Startup Validator
 - **[Startup_Validator_Skill.pdf](./Startup_Validator_Skill.pdf)** — Visual overview with diagrams
-- **[SKILL.md](./startup-validator/SKILL.md)** — Full skill definition
-- **[references/api_reference.md](./startup-validator/references/api_reference.md)** — Agent prompt reference
+- **[SKILL.md](./startup-validator/SKILL.md)** — Core skill definition
+- **[references/](./startup-validator/references/)** — Agent prompts, toolkit specs, scoring rubric
 
 ### Negotiation War Room
-- **[SKILL.md](./negotiation-war-room/SKILL.md)** — Full skill definition (the core engine)
-- **[references/api_reference.md](./negotiation-war-room/references/api_reference.md)** — Agent architecture reference
+- **[SKILL.md](./negotiation-war-room/SKILL.md)** — Core skill definition
+- **[references/](./negotiation-war-room/references/)** — Agent prompts, deliverable templates, debrief framework
+
+### Vibe Coder Guardian
+- **[SKILL.md](./vibe-coder-guardian/SKILL.md)** — Core skill definition
+- **[references/](./vibe-coder-guardian/references/)** — Checklists, build guardrails, pitfalls
 
 ---
 
