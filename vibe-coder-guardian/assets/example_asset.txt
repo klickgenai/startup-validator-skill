@@ -1,0 +1,11 @@
+# Vibe Coder Guardian — Assets
+
+This skill does not require pre-loaded assets.
+
+The skill operates as a behavioral framework — it changes HOW Claude writes and
+reviews code, not WHAT it generates. All guardrails, checklists, and verification
+protocols are embedded in the SKILL.md and applied automatically during every
+coding interaction.
+
+No external templates, spreadsheets, or documents are generated.
+The value is in the code quality itself.
