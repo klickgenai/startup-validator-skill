@@ -1,0 +1,14 @@
+# Negotiation War Room — Assets
+
+This skill does not require pre-loaded assets.
+
+All outputs are generated dynamically based on the user's specific negotiation context:
+
+- Intelligence Dossier (compiled from 6 parallel research agents)
+- ZOPA & Anchor Map
+- Concession Ladder
+- Objection Handling Playbook (10 scenarios)
+- Scenario Decision Trees (5 branching paths)
+- Written Negotiation Templates (5 email/message templates)
+- One-Page Battle Card (the hero deliverable)
+- Post-Negotiation Scorecard (debrief mode)
