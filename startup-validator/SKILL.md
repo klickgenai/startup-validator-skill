@@ -120,6 +120,7 @@ Run these searches (adapt keywords to the specific industry):
 Also search the top 2-3 industry-specific forums.
 Also search YouTube for relevant creator channels (5-10).
 Also search app store reviews for competing products (20-30 reviews).
+If public X conversation could change the verdict, load references/public-x-signals.md and run the public X signal check as a separate evidence lane.
 
 For each finding, record:
 - Source (subreddit/forum/YouTube/app store)
@@ -136,6 +137,7 @@ Compile a summary with:
 - Top 3 pain points ranked by frequency
 - AI/tech sentiment breakdown (positive/negative/unaware)
 - Competitor awareness level
+- Public X themes and sample size when X was checked
 - Confidence score (1-10) that the pain exists
 - 5 YouTube channels/creators identified as potential interview candidates
 - 5 worst app store complaints about existing tools
@@ -235,6 +237,7 @@ Create a spreadsheet with these sheets:
 - **Online Signals**: 20 rows of research findings with sources
 - **Competitor Intel**: Full competitor matrix + market size validation + pricing landscape
 - **App Reviews**: Competing product review analysis
+- **Public X Signals**: Launch reactions, customer language, competitor mentions, and outreach leads when X was checked
 - **YouTube Research**: Creator/influencer list with contact info
 - **Strategy Solutions**: Pricing tiers, feature matrix, trust timeline, GTM channels
 - **Sources**: All URLs and publications cited
